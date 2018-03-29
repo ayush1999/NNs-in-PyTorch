@@ -67,25 +67,23 @@ class RNN(nn.Module):
         return Variable(torch.zeros(1, self.hidden_size))
 
 rnn = RNN(n_chars, 90, n_chars)
-criterion = nn.NLLLoss()
+criterion = nn.MSELoss()
 learning_rate = 0.05
 optimizer = torch.optim.Adam(rnn.parameters(), lr=learning_rate)
 hidden = rnn.init_hidden()
-epochs = 1
+epochs = 5
 
+rnn.cuda()
 for epoch in range(epochs):
     for i in range(len(X)):
         for ele in X[i]:
-            output, hidden = rnn(Variable(ele.t()), hidden)
-        loss = criterion(output, Variable(Y[i]))
+            output, hidden = rnn(Variable(ele.t()).cuda(), hidden.cuda())
+        loss = criterion(output, Variable(Y[i]).cuda())
 
-        loss.backward()
+        loss.backward(retain_graph=True)
         optimizer.zero_grad()
         optimizer.step()
 
         if (i % 1000 == 0):
             print('Current loss is: ', loss)
-
-
-print(rnn(Variable(X[2][2].t()), hidden))
 
